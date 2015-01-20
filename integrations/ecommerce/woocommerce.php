@@ -26,6 +26,9 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 		/* HTTP actions */
 		add_action( 'woocommerce_add_to_cart'                   , array( $this, 'add_to_cart' )     , 10, 3 );
 		add_action( 'woocommerce_before_cart_item_quantity_zero', array( $this, 'remove_from_cart' ), 10 );
+
+		/* filters */
+		add_filter( 'segment_get_current_user_identify', array( $this, 'completed_order_identify'), 10, 2 );
 	}
 
 	/**
@@ -319,6 +322,62 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 		}
 
 		return $track;
+	}
+
+	/**
+	* Idenfies the user without the need of a WP account when the order is completed successfully.
+	*
+	* @since  ---
+	* @access public
+	*
+	* @uses
+	*
+	* @return array with info of the person who bought for analytics.indentify().
+	*/
+	public function completed_order_identify( $identify, $settings ) {
+
+		if ( did_action( 'woocommerce_thankyou' ) ) {
+
+			$order_number = get_query_var( 'order-received' );
+
+			$order = new WC_Order( $order_number );
+
+			/* Because gateways vary wildly in their usage of the status concept, we check for failure rather than success. */
+			if ( 'failed' !== $order->status ) {
+
+				$items        = $order->get_items();
+				$products     = array();
+
+				foreach ( $items as $item ) {
+					$_product = $order->get_product_from_item( $item );
+					$product = array(
+						'id'       => $item->product_id,
+						'sku'      => $_product->get_sku(),
+						'name'     => $item['name'],
+						'price'    => $item['line_subtotal'],
+						'quantity' => $item['qty'],
+						'category' => implode( ', ', wp_list_pluck( wc_get_product_terms( $item->product_id, 'product_cat' ), 'name' ) ),
+					);
+
+					$products[] = $product;
+
+				}
+
+				$identify = array(
+					'user_id' => $order->billing_email,
+					'traits'  => array(
+						'email'     	=> $order->billing_email,
+						'firstName' 	=> $order->billing_first_name,
+						'lastName'  	=> $order->billing_last_name,
+						'country'   	=> $order->billing_country,
+						'product' 		=> $products[0]['name'],
+						'purchase_date'	=> date("Y-m-d H:i:s")
+					)
+				);
+			}
+
+			return $identify;
+		}
 	}
 
 }
