@@ -300,12 +300,18 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 				$track = array(
 					'event'      => __( 'Completed Order', 'segment' ),
 					'properties' => array(
-						'id'       => $order->get_order_number(),
-						'total'    => $order->get_total(),
-						'revenue'  => $order->get_total() - ( $order->get_total_shipping() + $order->get_total_tax() ),
-						'shipping' => $order->get_total_shipping(),
-						'tax'      => $order->get_total_tax(),
-						'products' => $products
+						'id'       			=> $order->get_order_number(),
+						'total'    			=> $order->get_total(),
+						'revenue'  			=> $order->get_total() - ( $order->get_total_shipping() + $order->get_total_tax() ),
+						'shipping' 			=> $order->get_total_shipping(),
+						'tax'      			=> $order->get_total_tax(),
+						'discounts'         => $order->get_used_coupons(),
+						'total_discount'    => $order->get_total_discount(),
+						'product' 			=> $products[0]['name'],
+						'name'              => $order->billing_first_name,
+						'surname'           => $order->billing_last_name,
+						'email'             => $order->billing_email,
+						'country'           => $order->billing_country
 					)
 				);
 
