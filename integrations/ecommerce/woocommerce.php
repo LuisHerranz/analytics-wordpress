@@ -371,7 +371,7 @@ class Segment_Commerce_Woo extends Segment_Commerce {
 						'lastName'  	=> $order->billing_last_name,
 						'country'   	=> $order->billing_country,
 						'product' 		=> $products[0]['name'],
-						'purchase_date'	=> date("Y-m-d H:i:s")
+						'purchase_date'	=> gmdate("Y-m-d H:i:s T")
 					)
 				);
 			}
